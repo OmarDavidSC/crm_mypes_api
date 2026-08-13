@@ -50,7 +50,8 @@ class AuthDow
             $role = Role::with("permissions")->where("id", $role_id)->first();
 
             $token = FirebaseJWT::encode(Authenticate::payloadToken([
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'company_id' => $company->id
             ]), Authenticate::keySecretToken());
 
             $response['success'] = true;
@@ -243,7 +244,8 @@ class AuthDow
             $role = Role::with("permissions")->where("id", $role_id)->first();
 
             $token = FirebaseJWT::encode(Authenticate::payloadToken([
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'company_id' => $company->id
             ]), Authenticate::keySecretToken());
 
             $response['success'] = true;

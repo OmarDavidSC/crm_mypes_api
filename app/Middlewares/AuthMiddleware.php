@@ -70,6 +70,7 @@ class AuthMiddleware {
                     throw new \Exception('El token es corructo');
                 }
                 Application::setItem("user_id", $data->user_id);
+                Application::setItem("company_id", $data->company_id);
             }
         } catch (\Exception $e) {
             http_response_code(401);
@@ -101,6 +102,7 @@ class AuthMiddleware {
         if (isset($decoded->data)) {
             $decrypted = Crypt::decrypt($decoded->data);
             Application::setItem("user_id", $decrypted->user_id);
+            Application::setItem("company_id", $decrypted->company_id);
         }
     }
 
