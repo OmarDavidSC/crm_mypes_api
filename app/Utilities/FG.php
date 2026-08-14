@@ -315,4 +315,11 @@ class FG
         $dateTime->setTimezone(new \DateTimeZone('UTC')); // Asegura que la zona horaria es UTC
         return $dateTime->format('Y-m-d H:i:s');
     }
+
+    public static function formatDateTimeHuman($datetime)
+    {
+        if (!$datetime) return null;
+
+        return Carbon::parse($datetime)->locale('es')->isoFormat('D [de] MMMM [del] YYYY [a las] h:mm A');
+    }
 }
