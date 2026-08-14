@@ -28,4 +28,24 @@ class Opportunity extends Model
         'lost_notes',
         'status',
     ];
+
+    public function pipeline() {
+        return $this->belongsTo(Pipeline::class, 'pipeline_id');
+    }
+
+    public function stage() {
+        return $this->belongsTo(PipelineStage::class, 'pipeline_stage_id');
+    }
+
+    public function lead() {
+        return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
+    public function customer() {
+        return $this->belongsTo(Customers::class, 'customer_id');
+    }
+
+    public function assignedUser() {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
 }
