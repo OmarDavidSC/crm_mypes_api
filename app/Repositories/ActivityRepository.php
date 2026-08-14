@@ -46,4 +46,17 @@ class ActivityRepository {
                 ->where('company_id', $company_id)->where('status', 1)->whereNull('deleted_at')
                 ->orderBy('activity_at', 'DESC')->orderBy('id', 'DESC')->limit($limit)->get();
     }
+
+    public function getCustomerTimeline(int $customer_id, int $company_id): Collection {
+        return Activity::query()
+            ->with(['user', 'lead', 'customer', 'opportunity'])
+            ->where('company_id', $company_id)->where('status', 1)->whereNull('deleted_at')
+            ->where(function ($query) use ($customer_id) {
+                $query->where('customer_id', $customer_id)
+                        ->orWhereHas('lead', function ($lead) use ($customer_id) {
+                                $lead->where('converted_customer_id', $customer_id);
+                            }
+                        );
+            })->orderBy('activity_at', 'DESC')->orderBy('id', 'DESC')->get();
+    }
 }

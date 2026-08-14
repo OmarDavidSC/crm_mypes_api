@@ -2,17 +2,32 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityConstant;
+use App\Constants\CustomerConstant;
 use App\Constants\LeadConstant;
+use App\Models\Customers;
 use App\Models\Lead;
+use App\Repositories\CustomerRepository;
 use App\Repositories\LeadRepository;
+use App\Repositories\OpportunityRepository;
+use App\Utilities\FG;
 
 class LeadService {
 
     private LeadRepository $leadRepository;
+    private CustomerRepository $customerRepository;
+    private OpportunityRepository $opportunityRepository;
+
+    private CustomerService $customerService;
+    private ActivityService $activityService;
 
     public function __construct()
     {
         $this->leadRepository = new LeadRepository();
+        $this->customerRepository = new CustomerRepository();
+        $this->opportunityRepository = new OpportunityRepository();
+        $this->customerService = new CustomerService();
+        $this->activityService = new ActivityService();
     }
 
     public function create(array $input, int $company_id, ?int $user_id = null): Lead {
@@ -101,6 +116,76 @@ class LeadService {
         $lead->lead_status = $lead_status;
         $lead->save();
         return $lead->fresh();
+    }
+
+    public function convert(Lead $lead, array $input, int $user_id): Customers {
+        if ($lead->converted) {
+            throw new \Exception('El prospecto ya fue convertido en cliente.');
+        }
+
+        if (!empty($lead->email)) {
+            $existing = $this->customerRepository->getByEmail($lead->email, $lead->company_id);
+            if ($existing) {
+                throw new \Exception('Ya existe un cliente registrado con el correo electrónico del prospecto.');
+            }
+        }
+
+        if (!empty($lead->phone)) {
+            $existing = $this->customerRepository->getByPhone($lead->phone, $lead->company_id);
+            if ($existing) {
+                throw new \Exception('Ya existe un cliente registrado con el teléfono del prospecto.');
+            }
+        }
+
+        if (!empty($lead->whatsapp)) {
+            $existing = $this->customerRepository->getByPhone($lead->whatsapp, $lead->company_id);
+            if ($existing) {
+                throw new \Exception('Ya existe un cliente registrado con el WhatsApp del prospecto.');
+            }
+        }
+
+        $customerType = strtoupper(trim($input['customer_type'] ?? CustomerConstant::TYPE_PERSON));
+
+        $customerInput = [
+            'assigned_user_id' => $lead->assigned_user_id ?: $user_id,
+            'customer_type' => $customerType,
+            'name' => $lead->name,
+            'business_name' => !empty($input['business_name']) ? trim($input['business_name']) : $lead->business_name,
+            'document_type' => !empty($input['document_type']) ? strtoupper( trim($input['document_type'])) : null,
+            'document_number' => !empty($input['document_number']) ? trim($input['document_number']) : null,
+            'email' => $lead->email,
+            'phone' => $lead->phone,
+            'whatsapp' => $lead->whatsapp,
+            'address' => !empty($input['address']) ? trim($input['address']) : null,
+            'source' => $lead->source,
+            'notes' => $lead->notes,
+        ];
+
+        $customer = $this->customerService->create($customerInput, $lead->company_id, $user_id);
+        $opportunities = $this->opportunityRepository->getByLead($lead->id, $lead->company_id);
+        foreach ($opportunities as $opportunity) {
+            $opportunity->customer_id = $customer->id;
+            $opportunity->save();
+        }
+
+        $lead->converted = 1;
+        $lead->converted_customer_id = $customer->id;
+        $lead->converted_at = FG::getDateHour();
+        $lead->lead_status = LeadConstant::STATUS_CONVERTED;
+        $lead->save();
+
+
+        $this->activityService->createSystemActivity(
+                    $lead->company_id,
+                    $user_id,
+                    ActivityConstant::TYPE_LEAD_CONVERTED,
+                    'Prospecto convertido en cliente',
+                    "El prospecto {$lead->name} fue convertido en cliente.",
+                    $lead->id,
+                    $customer->id,
+                    null
+            );
+        return $customer->fresh();
     }
 
     private function validateSource(?string $source): void {

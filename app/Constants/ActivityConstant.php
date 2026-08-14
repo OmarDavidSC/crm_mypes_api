@@ -11,6 +11,7 @@ class ActivityConstant {
     public const TYPE_FOLLOW_UP = 'FOLLOW_UP';
 
     public const TYPE_LEAD_CREATED = 'LEAD_CREATED';
+    public const TYPE_LEAD_CONVERTED = 'LEAD_CONVERTED';
     public const TYPE_OPPORTUNITY_CREATED = 'OPPORTUNITY_CREATED';
     public const TYPE_STAGE_CHANGE = 'STAGE_CHANGE';
 
@@ -28,6 +29,7 @@ class ActivityConstant {
     public static function automaticTypes(): array {
         return [
             self::TYPE_LEAD_CREATED,
+            self::TYPE_LEAD_CONVERTED,
             self::TYPE_OPPORTUNITY_CREATED,
             self::TYPE_STAGE_CHANGE,
             self::TYPE_QUOTATION_CREATED,

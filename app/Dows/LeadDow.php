@@ -196,6 +196,46 @@ class LeadDow {
         }
         return $response;
     }
+    public function convert($request) {
+        $response = FG::responseDefault();
+        DB::beginTransaction();
+        try {
+            $id = (int)$request->getAttribute('id');
+            $input = $request->getParsedBody();
+            $company_id = Application::getItem('company_id');
+            $user_id = Application::getItem('user_id');
+
+            $errors = LeadValidator::convert($input);
+            if (!empty($errors)) {
+                $response['success'] = false;
+                $response['message'] = implode(', ', $errors);
+                return $response;
+            }
+
+            $lead = $this->leadRepository->getById($id, $company_id);
+            if (!$lead) {
+                $response['success'] = false;
+                $response['message'] ='El prospecto no fue encontrado.';
+                return $response;
+            }
+
+            $customer = $this->leadService->convert($lead, $input, $user_id);
+            DB::commit();
+            $response['success'] = true;
+            $response['data'] = [
+                'lead_id' => $lead->id,
+                'customer' => $customer,
+                'converted_at' => FG::formatDateTimeHuman($lead->fresh()->converted_at),
+            ];
+            $response['message'] = 'Prospecto convertido en cliente correctamente.';
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response['success'] = false;
+            $response['message'] = $e->getMessage();
+        }
+
+        return $response;
+    }
 
     public function remove($request) {
         $response = FG::responseDefault();

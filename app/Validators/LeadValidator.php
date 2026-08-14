@@ -39,4 +39,14 @@ class LeadValidator  extends BaseValidator
             'lead_status' => 'required|max:50',
         ]);
     }
+
+    public static function convert(array $data): array {
+        return self::makeValidator($data, [
+            'customer_type' => 'nullable|max:30',
+            'document_type' => 'nullable|max:20',
+            'document_number' => 'nullable|max:30',
+            'address' => 'nullable|max:500',
+            'business_name' => 'nullable|max:255',
+        ]);
+    }    
 }
