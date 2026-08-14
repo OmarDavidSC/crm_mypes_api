@@ -23,4 +23,20 @@ class Activity extends Model
         'activity_at',
         'status',
     ];
+
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function lead() {
+        return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
+    public function customer() {
+        return $this->belongsTo(Customers::class, 'customer_id');
+    }
+
+    public function opportunity() {
+        return $this->belongsTo(Opportunity::class, 'opportunity_id');
+    }
 }

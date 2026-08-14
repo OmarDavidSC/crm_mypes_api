@@ -4,8 +4,7 @@ namespace App\Validators;
 
 class LeadValidator  extends BaseValidator
 {
-    public static function store(array $data): array
-    {
+    public static function store(array $data): array {
         return self::makeValidator($data, [
             'assigned_user_id' => 'nullable|integer',
             'name' => 'required|max:255',
@@ -20,8 +19,7 @@ class LeadValidator  extends BaseValidator
         ]);
     }
 
-    public static function update(array $data): array
-    {
+    public static function update(array $data): array {
         return self::makeValidator($data, [
             'assigned_user_id' => 'nullable|integer',
             'name' => 'nullable|max:255',
@@ -36,8 +34,7 @@ class LeadValidator  extends BaseValidator
         ]);
     }
 
-    public static function changeStatus(array $data): array
-    {
+    public static function changeStatus(array $data): array {
         return self::makeValidator($data, [
             'lead_status' => 'required|max:50',
         ]);

@@ -51,5 +51,4 @@ class LeadRepository {
                 ->whereNull('deleted_at')
                 ->get();
     }
-
 }

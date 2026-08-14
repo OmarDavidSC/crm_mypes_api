@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityConstant;
 use App\Models\Opportunity;
 use App\Models\Pipeline;
 use App\Models\PipelineStage;
@@ -15,12 +16,14 @@ class OpportunityService {
     private PipelineRepository $pipelineRepository;
     private PipelineStageRepository $pipelineStageRepository;
     private LeadRepository $leadRepository;
+    private ActivityService $activityService;
 
     public function __construct()
     {
         $this->pipelineRepository = new PipelineRepository();
         $this->pipelineStageRepository = new PipelineStageRepository();
         $this->leadRepository = new LeadRepository();
+        $this->activityService = new ActivityService();
     }
 
     public function create(array $input, int $company_id, ?int $user_id = null): Opportunity {
@@ -58,6 +61,18 @@ class OpportunityService {
         $opportunity->lost_notes = null;
         $opportunity->status = 1;
         $opportunity->save();
+
+        $this->activityService->createSystemActivity(
+                    $company_id,
+                    $user_id,
+                    ActivityConstant::TYPE_OPPORTUNITY_CREATED,
+                    'Oportunidad creada',
+                    "Se creó la oportunidad {$opportunity->title}.",
+                    $opportunity->lead_id,
+                    $opportunity->customer_id,
+                    $opportunity->id
+        );
+
         return $opportunity->fresh();
     }
 
@@ -95,11 +110,13 @@ class OpportunityService {
         return $opportunity->fresh();
     }
 
-    public function moveStage(Opportunity $opportunity, int $stage_id, array $input = []): Opportunity {
+    public function moveStage(Opportunity $opportunity, int $stage_id, array $input = [],  ?int $user_id = null): Opportunity {
+        $previousStage = $opportunity->stage;
+
         if ($opportunity->closed_at) {
             throw new \Exception( 'La oportunidad ya se encuentra cerrada.');
         }
-        
+
         $stage = $this->pipelineStageRepository->getById($stage_id,$opportunity->company_id);
         if (!$stage) {
             throw new \Exception('La etapa seleccionada no existe.');
@@ -134,6 +151,18 @@ class OpportunityService {
             $opportunity->lost_notes = null;
         }
         $opportunity->save();
+
+        $this->activityService->createSystemActivity(
+                    $opportunity->company_id,
+                    $user_id,
+                    ActivityConstant::TYPE_STAGE_CHANGE,
+                    'Cambio de etapa',
+                    "La oportunidad cambió de {$previousStage->name} a {$stage->name}.",
+                    $opportunity->lead_id,
+                    $opportunity->customer_id,
+                    $opportunity->id
+        );
+
         return $opportunity->fresh();
     }
 

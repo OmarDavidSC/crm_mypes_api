@@ -151,13 +151,14 @@ class OpportunityDow {
         return $response;
     }
 
-    public function moveStage($request) {
+    public function move($request) {
         $response = FG::responseDefault();
         DB::beginTransaction();
         try {
             $id = (int)$request->getAttribute('id');
             $input = $request->getParsedBody();
             $company_id = Application::getItem('company_id');
+            $user_id = Application::getItem('user_id');
 
             $errors = OpportunityValidator::moveStage($input);
             if (!empty($errors)) {
@@ -173,7 +174,7 @@ class OpportunityDow {
                 return $response;
             }
 
-            $opportunity = $this->opportunityService->moveStage($opportunity, (int)$input['pipeline_stage_id'],$input);
+            $opportunity = $this->opportunityService->moveStage($opportunity, (int)$input['pipeline_stage_id'], $input, $user_id);
             DB::commit();
             
             $response['success'] = true;
@@ -188,7 +189,7 @@ class OpportunityDow {
         return $response;
     }
 
-    public function delete($request) {
+    public function remove($request) {
         $response = FG::responseDefault();
         DB::beginTransaction();
         try {

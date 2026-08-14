@@ -9,13 +9,11 @@ use App\Utilities\FG;
 use App\Validators\LeadValidator;
 use Illuminate\Database\Capsule\Manager as DB;
 
-class LeadDow
-{
+class LeadDow {
     private LeadRepository $leadRepository;
     private LeadService $leadService;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->leadRepository = new LeadRepository();
         $this->leadService = new LeadService();
     }

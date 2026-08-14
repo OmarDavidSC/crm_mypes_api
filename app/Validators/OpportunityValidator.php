@@ -4,8 +4,7 @@ namespace App\Validators;
 
 class OpportunityValidator extends BaseValidator
 {
-    public static function store(array $data): array
-    {
+    public static function store(array $data): array {
         return self::makeValidator($data, [
             'pipeline_id' => 'nullable|integer',
             'pipeline_stage_id' => 'nullable|integer',
@@ -20,8 +19,7 @@ class OpportunityValidator extends BaseValidator
         ]);
     }
 
-    public static function update(array $data): array
-    {
+    public static function update(array $data): array {
         return self::makeValidator($data, [
             'assigned_user_id' => 'nullable|integer',
             'title' => 'nullable|max:255',
@@ -32,8 +30,7 @@ class OpportunityValidator extends BaseValidator
         ]);
     }
 
-    public static function moveStage(array $data): array
-    {
+    public static function moveStage(array $data): array {
         return self::makeValidator($data, [
             'pipeline_stage_id' => 'required|integer',
             'lost_reason' => 'nullable|max:255',
