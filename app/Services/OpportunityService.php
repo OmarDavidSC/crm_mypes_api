@@ -6,6 +6,7 @@ use App\Constants\ActivityConstant;
 use App\Models\Opportunity;
 use App\Models\Pipeline;
 use App\Models\PipelineStage;
+use App\Repositories\CustomerRepository;
 use App\Repositories\LeadRepository;
 use App\Repositories\PipelineRepository;
 use App\Repositories\PipelineStageRepository;
@@ -17,6 +18,7 @@ class OpportunityService {
     private PipelineStageRepository $pipelineStageRepository;
     private LeadRepository $leadRepository;
     private ActivityService $activityService;
+    private CustomerRepository $customerRepository;
 
     public function __construct()
     {
@@ -24,17 +26,25 @@ class OpportunityService {
         $this->pipelineStageRepository = new PipelineStageRepository();
         $this->leadRepository = new LeadRepository();
         $this->activityService = new ActivityService();
+        $this->customerRepository = new CustomerRepository();
     }
 
     public function create(array $input, int $company_id, ?int $user_id = null): Opportunity {
         if (empty($input['lead_id']) && empty($input['customer_id'])) {
-            throw new \Exception( 'La oportunidad debe estar asociada a un prospecto o cliente.');
+            throw new \Exception('La oportunidad debe estar asociada a un prospecto o cliente.');
         }
 
         if (!empty($input['lead_id'])) {
             $lead = $this->leadRepository->getById((int)$input['lead_id'], $company_id);
             if (!$lead) {
                 throw new \Exception('El prospecto seleccionado no existe.');
+            }
+        }
+
+        if (!empty($input['customer_id'])) {
+            $customer = $this->customerRepository->getById((int)$input['customer_id'], $company_id);
+            if (!$customer) {
+                throw new \Exception('El cliente seleccionado no existe.');
             }
         }
 

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
-
     use SoftDeletes;
     protected $table = 'tasks';
     protected $fillable = [
@@ -26,4 +25,24 @@ class Task extends Model
         'completed_at',
         'status',
     ];
+
+    public function assignedUser() {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function createdByUser() {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function lead() {
+        return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
+    public function customer() {
+        return $this->belongsTo(Customers::class, 'customer_id');
+    }
+
+    public function opportunity() {
+        return $this->belongsTo(Opportunity::class, 'opportunity_id');
+    }
 }

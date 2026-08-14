@@ -27,4 +27,28 @@ class Customers extends Model
         'notes',
         'status',
     ];
+
+    public function assignedUser() {
+        return $this->belongsTo(User::class,'assigned_user_id');
+    }
+
+    public function contacts() {
+        return $this->hasMany(CustomerContact::class, 'customer_id');
+    }
+
+    public function opportunities() {
+        return $this->hasMany(Opportunity::class, 'customer_id');
+    }
+
+    public function activities() {
+        return $this->hasMany(Activity::class, 'customer_id');
+    }
+
+    public function tasks() {
+        return $this->hasMany(Task::class, 'customer_id');
+    }
+
+    public function quotations() {
+        return $this->hasMany(Quotation::class, 'customer_id');
+    }
 }

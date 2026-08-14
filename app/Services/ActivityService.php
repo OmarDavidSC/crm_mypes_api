@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Constants\ActivityConstant;
 use App\Models\Activity;
+use App\Repositories\CustomerRepository;
 use App\Repositories\LeadRepository;
 use App\Repositories\OpportunityRepository;
 use App\Utilities\FG;
@@ -11,11 +12,13 @@ use App\Utilities\FG;
 class ActivityService {
     private LeadRepository $leadRepository;
     private OpportunityRepository $opportunityRepository;
+    private CustomerRepository $customerRepository;
 
     public function __construct()
     {
         $this->leadRepository = new LeadRepository();
         $this->opportunityRepository = new OpportunityRepository();
+        $this->customerRepository = new CustomerRepository();
     }
 
     public function create(array $input, int $company_id, ?int $user_id = null): Activity {
@@ -120,9 +123,11 @@ class ActivityService {
             }
         }
 
-        /*
-         * CustomerRepository todavía no existe.
-         * Lo conectaremos cuando hagamos el módulo Customer.
-         */
+        if (!empty($input['customer_id'])) {
+            $customer = $this->customerRepository->getById((int)$input['customer_id'], $company_id);
+            if (!$customer) {
+                throw new \Exception('El cliente seleccionado no existe.');
+            }
+        }
     }
 }

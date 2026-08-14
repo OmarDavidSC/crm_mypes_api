@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerContact extends Model
 {
-
     use SoftDeletes;
     protected $table = 'customer_contacts';
     protected $fillable = [
@@ -23,4 +22,8 @@ class CustomerContact extends Model
         'notes',
         'status',
     ];
+
+    public function customer() {
+        return $this->belongsTo(Customers::class, 'customer_id');
+    }
 }
