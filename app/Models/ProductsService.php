@@ -21,4 +21,8 @@ class ProductsService extends Model
         'tax_percentage',
         'status',
     ];
+
+    public function quotationItems() {
+        return $this->hasMany(QuotationItem::class, 'product_service_id');
+    }
 }
