@@ -153,8 +153,11 @@ class QuotationService {
 
         $activityType = match ($newStatus) {
                     QuotationConstant::STATUS_SENT => ActivityConstant::TYPE_QUOTATION_SENT,
+                    QuotationConstant::STATUS_VIEWED => ActivityConstant::TYPE_QUOTATION_VIEWED,
                     QuotationConstant::STATUS_ACCEPTED => ActivityConstant::TYPE_QUOTATION_ACCEPTED,
                     QuotationConstant::STATUS_REJECTED => ActivityConstant::TYPE_QUOTATION_REJECTED,
+                    QuotationConstant::STATUS_EXPIRED => ActivityConstant::TYPE_QUOTATION_EXPIRED,
+                    QuotationConstant::STATUS_CANCELLED => ActivityConstant::TYPE_QUOTATION_CANCELLED,
                     default => ActivityConstant::TYPE_SYSTEM,
             };
 
@@ -350,9 +353,15 @@ class QuotationService {
     }
 
     private function generateQuotationNumber(int $company_id): string {
-        $lastId = $this->quotationRepository->getLastIdByCompany($company_id);
-        $next = $lastId + 1;
-        return 'COT-' . str_pad((string)$next, 6, '0', STR_PAD_LEFT);
+       $lastQuotation = $this->quotationRepository->getLastQuotationByCompany($company_id);
+
+        if (!$lastQuotation) {
+            $next = 1;
+        } else {
+            $number = str_replace('COT-', '', $lastQuotation->quotation_number);
+            $next = ((int)$number) + 1;
+        }
+        return 'COT-' .str_pad((string)$next, 6, '0', STR_PAD_LEFT);
     }
 
     private function registerStatusHistory(Quotation $quotation, int $user_id, ?string $previousStatus, string $newStatus, ?string $notes = null): void {

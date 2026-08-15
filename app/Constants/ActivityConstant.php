@@ -19,6 +19,9 @@ class ActivityConstant {
     public const TYPE_QUOTATION_SENT = 'QUOTATION_SENT';
     public const TYPE_QUOTATION_ACCEPTED = 'QUOTATION_ACCEPTED';
     public const TYPE_QUOTATION_REJECTED = 'QUOTATION_REJECTED';
+    public const TYPE_QUOTATION_VIEWED = 'QUOTATION_VIEWED';
+    public const TYPE_QUOTATION_EXPIRED = 'QUOTATION_EXPIRED';
+    public const TYPE_QUOTATION_CANCELLED = 'QUOTATION_CANCELLED';
 
     public const TYPE_SYSTEM = 'SYSTEM';
 
@@ -36,6 +39,9 @@ class ActivityConstant {
             self::TYPE_QUOTATION_SENT,
             self::TYPE_QUOTATION_ACCEPTED,
             self::TYPE_QUOTATION_REJECTED,
+            self::TYPE_QUOTATION_VIEWED,
+            self::TYPE_QUOTATION_EXPIRED,
+            self::TYPE_QUOTATION_CANCELLED,
             self::TYPE_SYSTEM,
         ];
     }

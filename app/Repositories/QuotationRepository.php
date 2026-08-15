@@ -41,4 +41,8 @@ class QuotationRepository {
         return (int) Quotation::query()
                 ->where('company_id', $company_id)->withTrashed()->max('id');
     }
+
+    public function getLastQuotationByCompany(int $company_id): ?Quotation {
+        return Quotation::query()->withTrashed()->where('company_id', $company_id)->orderBy('id', 'DESC')->first();
+    }
 }
