@@ -125,7 +125,7 @@ class QuotationDow {
             $company_id = Application::getItem('company_id');
             $user_id = Application::getItem('user_id');
 
-            $errors = QuotationValidator::changeStatus($input);
+            $errors = QuotationValidator::update($input);
             if(!empty($errors)) {
                 $response['success'] = false;
                 $response['message'] = implode(', ', $errors);
