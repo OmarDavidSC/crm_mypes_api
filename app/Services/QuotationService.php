@@ -13,6 +13,7 @@ use App\Repositories\OpportunityRepository;
 use App\Repositories\ProductServiceRepository;
 use App\Repositories\QuotationRepository;
 use App\Utilities\FG;
+use Exception;
 
 class QuotationService {
     private QuotationRepository $quotationRepository;
@@ -167,6 +168,97 @@ class QuotationService {
                     $quotation->customer_id,
                     $quotation->opportunity_id
             );
+        return $quotation->fresh(['items.productService', 'statusHistory.user']);
+    }
+
+    public function updateDraft(Quotation $quotation, array $input): Quotation {
+        if($quotation->quotation_status !== QuotationConstant::STATUS_DRAFT) {
+            throw new \Exception('Solo las cotizaciones en borrador pueden modificarse.');
+        }
+
+        //fechas
+        $quotationDate = !empty($input['quotation_date']) ? $input['quotation_date'] : $quotation->quotation_date; 
+        $expirationDate = array_key_exists('expiration_date', $input) 
+                            ? (!empty($input['expiration_date']) ? $input['expiration_date'] : null)
+                            : $quotation->expiration_date;
+                            
+        if(!empty($expirationDate) && strtotime($expirationDate) < strtotime($quotationDate)) {
+            throw new Exception('La fecha de vencimiento no puede ser anterior a la fecha de cotización.');
+        }
+
+        //moneda
+        if(array_key_exists('currency', $input)) {
+            $currency = strtoupper(trim($input['currency']));
+            if(!in_array($currency, QuotationConstant::currencies(), true)) {
+                throw new Exception('La moneda seleccionada no es válida.');
+            }
+            $quotation->currency = $currency;
+        }
+
+        //usuario asignado
+        if(array_key_exists('assigned_user_id', $input)) {
+            $quotation->assigned_user_id = !empty($input['assigned_user_id']) ? (int) $input['assigned_user_id'] : null;
+        }
+        $quotation->quotation_date = $quotationDate;
+        $quotation->expiration_date = $expirationDate;
+
+        if(array_key_exists('notes', $input)) {
+            $quotation->notes = !empty($input['notes']) ? trim($input['notes']) : null;
+        }
+        if(array_key_exists('terms_conditions', $input)) {
+            $quotation->terms_conditions = !empty($input['terms_conditions']) ? trim($input['terms_conditions']) : null;
+        }
+
+        //si no hay items modificaciones solo la cabecera
+        if(!array_key_exists('items', $input)) {
+            $quotation->save();
+            return $quotation->fresh(['items.productService', 'statusHistory.user']);
+        }
+
+        //si llegan items recalculamos todo de nuevo
+        $items = $this->parseItems($input['items']);
+        if(empty($items)) {
+            throw new Exception('La cotización debe de contener al menos un producto o servicio.');
+        }
+
+        $calculatedItems = $this->calculateItems($input['items'], $quotation->company_id);
+        $itemsSubtotal = round(array_sum(array_column($calculatedItems, 'total')));
+        $generalDiscount = array_key_exists('discount', $input) ? round((float) $input['discount'], 2)
+                                                            : round((float) $quotation->discount, 2);
+
+        if($generalDiscount > $itemsSubtotal) {
+            throw new Exception('El descuento general no puede superar el importe de la cotización.');
+        }
+
+        $itemsTax = round(array_sum(array_column($calculatedItems, 'tax')));
+        $itemsBaseSubtotal = round(array_sum(array_column($calculatedItems, 'subtotal')));
+        $total = round($itemsSubtotal - $generalDiscount, 2);
+
+        $quotation->subtotal = $itemsBaseSubtotal;
+        $quotation->tax = $itemsTax;
+        $quotation->discount = $generalDiscount;
+        $quotation->total = $total;
+        $quotation->save();
+
+        //eliminamos los items anteriores logicamente
+        foreach ($quotation->items as $oldItem) {
+            $oldItem->delete();
+        }
+
+        foreach ($calculatedItems as $item) {
+            $detail = new QuotationItem();
+            $detail->quotation_id = $quotation->id;
+            $detail->product_service_id = $item['product_service_id'];
+            $detail->description = $item['description'];
+            $detail->quantity = $item['quantity'];
+            $detail->unit_price = $item['unit_price'];
+            $detail->discount = $item['discount'];
+            $detail->tax_percentage = $item['tax_percentage'];
+            $detail->subtotal = $item['subtotal'];
+            $detail->tax = $item['tax'];
+            $detail->total = $item['total'];
+            $detail->save();
+        }
         return $quotation->fresh(['items.productService', 'statusHistory.user']);
     }
 
