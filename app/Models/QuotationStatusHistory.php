@@ -20,4 +20,12 @@ class QuotationStatusHistory extends Model
         'notes',
         'changed_at',
     ];
+
+    public function quotation() {
+        return $this->belongsTo(Quotation::class, 'quotation_id');
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

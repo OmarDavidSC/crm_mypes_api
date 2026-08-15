@@ -23,4 +23,12 @@ class QuotationItem extends Model
         'tax',
         'total',
     ];
+
+    public function quotation() {
+        return $this->belongsTo(Quotation::class, 'quotation_id');
+    }
+
+    public function productService() {
+        return $this->belongsTo(ProductsService::class, 'product_service_id');
+    }
 }
